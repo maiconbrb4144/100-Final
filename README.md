@@ -14,10 +14,10 @@ gui.Name = "WallHopGui"
 gui.ResetOnSpawn = false
 gui.Parent = game.CoreGui
 
--- Frame principal
+-- Frame principal (mais fino)
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0.125, 0, 0.075, 0)
-frame.Position = UDim2.new(0.02, 0, 0.15, 0) -- posição melhor para não colidir com UI padrão
+frame.Size = UDim2.new(0.11, 0, 0.05, 0)
+frame.Position = UDim2.new(0.02, 0, 0.15, 0)
 frame.BackgroundColor3 = Color3.new(1, 1, 1)
 frame.BackgroundTransparency = 0.85
 Instance.new("UICorner", frame)
@@ -77,10 +77,10 @@ button.MouseButton1Click:Connect(function()
     button.Text = wallhopActive and "WallHop" or "Walking"
 end)
 
--- Giro suave
+-- Giro suave e mais rápido (apenas 0.005s por passo)
 local function smoothRotate(root, angleRad)
     local steps = 3
-    local delayTime = 0.007
+    local delayTime = 0.005 -- mais rápido
     local stepAngle = angleRad / steps
     for i = 1, steps do
         root.CFrame *= CFrame.Angles(0, stepAngle, 0)
@@ -102,7 +102,7 @@ UserInputService.JumpRequest:Connect(function()
 
     InfiniteJumpEnabled = false
     humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    smoothRotate(root, -1.3) -- aumento sutil para ~75 graus
+    smoothRotate(root, -1.3) -- ~75 graus (ligeiramente mais que 70)
     task.wait(0.05)
     smoothRotate(root, 1.3)
     InfiniteJumpEnabled = true

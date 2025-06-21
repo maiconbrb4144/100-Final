@@ -1,46 +1,48 @@
--- Serviços
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
 local plr = Players.LocalPlayer
 
--- Limpeza de GUI duplicada
-if game.CoreGui:FindFirstChild("WallHopGui") then
-    game.CoreGui:FindFirstChild("WallHopGui"):Destroy()
-end
+-- Remove GUI duplicada
+local existingGui = CoreGui:FindFirstChild("WallHopGui")
+if existingGui then existingGui:Destroy() end
 
--- GUI Principal
-local gui = Instance.new("ScreenGui")
-gui.Name = "WallHopGui"
-gui.ResetOnSpawn = false
-gui.Parent = game.CoreGui
+-- GUI
+local guiy = Instance.new("ScreenGui")
+guiy.Name = "WallHopGui"
+guiy.Parent = CoreGui
 
--- Frame principal (mais fino)
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0.11, 0, 0.05, 0)
-frame.Position = UDim2.new(0.02, 0, 0.15, 0)
-frame.BackgroundColor3 = Color3.new(1, 1, 1)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.125, 0, 0.075, 0)
+frame.Position = UDim2.new(0.02, 0, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 frame.BackgroundTransparency = 0.85
+frame.Parent = guiy
+
 Instance.new("UICorner", frame)
 
--- Botão de toggle
-local button = Instance.new("TextButton", frame)
+local button = Instance.new("TextButton")
 button.Size = UDim2.new(0.82, 0, 0.65, 0)
 button.Position = UDim2.new(0.5, 0, 0.5, 0)
 button.AnchorPoint = Vector2.new(0.5, 0.5)
-button.BackgroundColor3 = Color3.new(1, 1, 1)
+button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 button.BackgroundTransparency = 0.85
 button.BorderSizePixel = 0
 button.Text = "Walking"
 button.TextScaled = true
 button.Font = Enum.Font.Gotham
 button.TextColor3 = Color3.new(0, 0, 0)
+button.Parent = frame
+
 Instance.new("UICorner", button)
 
--- Sistema de arrastar
+-- Drag funcional
 do
     local dragging, dragInput, dragStart, startPos
+
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
             startPos = frame.Position
@@ -54,7 +56,7 @@ do
     end)
 
     frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
             dragInput = input
         end
     end)
@@ -70,28 +72,27 @@ do
     end)
 end
 
--- Toggle de WallHop
+-- Toggle
 local wallhopActive = false
 button.MouseButton1Click:Connect(function()
     wallhopActive = not wallhopActive
     button.Text = wallhopActive and "WallHop" or "Walking"
 end)
 
--- Giro suave e mais rápido (apenas 0.005s por passo)
-local function smoothRotate(root, angleRad)
-    local steps = 3
-    local delayTime = 0.005 -- mais rápido
-    local stepAngle = angleRad / steps
-    for i = 1, steps do
+-- Giro com leve suavidade
+local function smoothQuickRotate(root, angle)
+    local steps = 2
+    local stepAngle = angle / steps
+    for _ = 1, steps do
         root.CFrame *= CFrame.Angles(0, stepAngle, 0)
-        task.wait(delayTime)
+        task.wait(0.02) -- giro mais lento, ainda leve
     end
 end
 
 -- Sistema de WallHop
-local InfiniteJumpEnabled = true
+local debounce = true
 UserInputService.JumpRequest:Connect(function()
-    if not wallhopActive or not InfiniteJumpEnabled then return end
+    if not wallhopActive or not debounce then return end
 
     local char = plr.Character
     if not char then return end
@@ -100,10 +101,12 @@ UserInputService.JumpRequest:Connect(function()
     local root = char:FindFirstChild("HumanoidRootPart")
     if not humanoid or not root then return end
 
-    InfiniteJumpEnabled = false
+    debounce = false
     humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    smoothRotate(root, -1.3) -- ~75 graus (ligeiramente mais que 70)
-    task.wait(0.05)
-    smoothRotate(root, 1.3)
-    InfiniteJumpEnabled = true
+
+    smoothQuickRotate(root, -1)
+    task.wait(0.02)
+    smoothQuickRotate(root, 1)
+
+    debounce = true
 end)
